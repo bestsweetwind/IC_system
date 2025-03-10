@@ -1,4 +1,4 @@
-MODULE main  --reachable_state 50069  
+MODULE main  
 VAR 
 R1 : R_SG21_SG24(self,next(ATS.cmd1),R2.st,R3.st,L22.Occ,L23.Occ,L24.Occ);
 R2 : R_SG21_SG14(self,next(ATS.cmd2),R1.st,R3.st,R4.st,L22.Occ,L13.Occ,L14.Occ);
@@ -26,62 +26,35 @@ ASSIGN
 DEFINE
 Route_marked := (R1.st=marked | R2.st=marked | R3.st=marked | R4.st=marked );
 -------------------------------------VERIFICATION formulas -----------------------------------------
---INVARSPEC (R1.st!=free)
---LTLSPEC G (R1.flag=TRUE)
---INVARSPEC (R1.flag!=TRUE)
---INVARSPEC ((L22.st=reserved)&(R1.st=locked|R1.st=occupied) -> (P13.side_lock=locked))
---LTLSPEC G ((L22.st=reserved)&(R1.st=locked|R1.st=occupied) -> (P13.side_lock=locked))
-----train System level accident
-----LTLSPEC G !((R1.st=allocated)&((R2.st=allocated|R2.st=locked)|(R3.st=allocated|R3.st=locked)))
-----LTLSPEC G !((R2.st=allocated)&((R1.st=allocated|R1.st=locked)|(R3.st=allocated|R3.st=locked)|(R4.st=allocated|R4.st=locked)))
-----LTLSPEC G !((R3.st=allocated)&((R1.st=allocated|R1.st=locked)|(R2.st=allocated|R2.st=locked)|(R4.st=allocated|R4.st=locked)))
-----LTLSPEC G !((R4.st=allocated)&((R2.st=allocated|R2.st=locked)|(R3.st=allocated|R3.st=locked)))
-----LTLSPEC G !(t1.front = derailed | t2.front = derailed)
-----LTLSPEC G !(t1.front != beg & t1.front != beg & t2.front != beg & t2.front !=  beg & t1.front = t2.front)
-----LTLSPEC G !(t1.front != beg & t1.front != beg & t2.front != beg & t2.front !=  beg & t1.front = t2.ltail)
-----LTLSPEC G !(t1.front != beg & t1.front != beg & t2.front != beg & t2.front !=  beg & t1.front = t2.tail)
-----LTLSPEC G !(t1.front != beg & t1.front != beg & t2.front != beg & t2.front !=  beg & t2.front = t1.ltail)
-----LTLSPEC G !(t1.front != beg & t1.front != beg & t2.front != beg & t2.front !=  beg & t2.front = t1.tail)
+------活性验证
+--CTLSPEC (ATS.cmd1 ->EF(R1.st=occupied));
+--CTLSPEC (ATS.cmd2 ->EF(R2.st=occupied));
+--CTLSPEC (ATS.cmd3 ->EF(R3.st=occupied));
+--CTLSPEC (ATS.cmd4 ->EF(R4.st=occupied));
+--CTLSPEC (ATS.cmd1 -> EF(R1.flag)); 
+--CTLSPEC (ATS.cmd2 -> EF(R2.flag));
+--CTLSPEC (ATS.cmd3 -> EF(R3.flag));
+--CTLSPEC (ATS.cmd4 -> EF(R4.flag));
+------互斥性验证
+--LTLSPEC G(R1.st=allocated ->((R2.st!=allocated|R2.st!=locked|R2.st!=formed)&(R3.st!=allocated|R3.st!=locked|R3.st!=formed)))
+--LTLSPEC G(R2.st=allocated ->((R1.st!=allocated|R1.st!=locked|R1.st!=formed)&(R3.st!=allocated|R3.st!=locked|R3.st!=formed)&(R4.st!=allocated|R4.st!=locked|R4.st!=formed)))
+--LTLSPEC G(R3.st=allocated ->((R1.st!=allocated|R1.st!=locked|R1.st!=formed)&(R2.st!=allocated|R2.st!=locked|R2.st!=formed)&(R4.st!=allocated|R4.st!=locked|R4.st!=formed)))
+--LTLSPEC G(R4.st=allocated ->((R2.st!=allocated|R2.st!=locked|R2.st!=formed)&(R3.st!=allocated|R3.st!=locked|R3.st!=formed)))
 ---------------------------------------------------------------------------------------------------------
 --------STPA 需求
-----不存在冲突进路
-----INVARSPEC (R1.st=allocated ->((R2.st!=allocated|R2.st!=locked)&(R3.st!=allocated|R3.st!=locked)))
-----INVARSPEC (R2.st=allocated ->((R1.st!=allocated|R1.st!=locked)&(R3.st!=allocated|R3.st!=locked)&(R4.st!=allocated|R4.st!=locked)))
-----INVARSPEC (R3.st=allocated ->((R1.st!=allocated|R1.st!=locked)&(R2.st!=allocated|R2.st!=locked)&(R4.st!=allocated|R4.st!=locked)))
-----INVARSPEC (R4.st=allocated ->((R2.st!=allocated|R2.st!=locked)&(R3.st!=allocated|R3.st!=locked)))
---
---LTLSPEC G(R1.st=allocated ->((R2.st!=allocated|R2.st!=locked)&(R3.st!=allocated|R3.st!=locked)))
---LTLSPEC G(R2.st=allocated ->((R1.st!=allocated|R1.st!=locked)&(R3.st!=allocated|R3.st!=locked)&(R4.st!=allocated|R4.st!=locked)))
---LTLSPEC G(R3.st=allocated ->((R1.st!=allocated|R1.st!=locked)&(R2.st!=allocated|R2.st!=locked)&(R4.st!=allocated|R4.st!=locked)))
---LTLSPEC G(R4.st=allocated ->((R2.st!=allocated|R2.st!=locked)&(R3.st!=allocated|R3.st!=locked)))
---
 ----不存在脱轨
 ----INVARSPEC (t1.front != derailed & t2.front != derailed)
 ----LTLSPEC G(t1.front != derailed & t2.front != derailed)
 ----不存在碰撞 
-----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t1.front != t2.front) --TRUE 254
-----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t1.front != t2.tail)--TRUE 62
-----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t2.front != t1.tail)--TRUE 420
+----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t1.front != t2.front) 
+----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t1.front != t2.tail)
+----INVARSPEC ((t1.front != beg & t2.front !=  beg) -> t2.front != t1.tail)
 ----可以将所有的碰撞放在一起验证
---LTLSPEC G((t1.front != beg & t2.front !=  beg) -> (t1.front != t2.front)) --1429
---LTLSPEC G((t1.front != beg & t2.front !=  beg) -> t1.front != t2.tail)--TRUE 62
---LTLSPEC G((t1.front != beg & t2.front !=  beg) -> t2.front != t1.tail)--TRUE 420
-----验证时间 3423
---INVARSPEC (!R1.flag)
---INVARSPEC (!R2.flag)
---INVARSPEC (!R3.flag)
---INVARSPEC (!R4.flag)
-----INVARSPEC !(L22.Occ & !L23.Occ & !L24.Occ)
-----INVARSPEC !(L22.Occ & L23.Occ & !L24.Occ)
-----INVARSPEC !(L22.Occ & L23.Occ & L24.Occ)
-----INVARSPEC !(!L22.Occ & L23.Occ & !L24.Occ)
-----INVARSPEC !(!L22.Occ & L23.Occ & L24.Occ)
-----INVARSPEC !(!L22.Occ & !L23.Occ & L24.Occ)
-----INVARSPEC (L22.Occ -> L22.st=reserved)  --976
---CTLSPEC (ATS.cmd1 -> EF(R1.flag)) 
---CTLSPEC (ATS.cmd2 -> EF(R2.flag))
---CTLSPEC (ATS.cmd3 -> EF(R3.flag))
---CTLSPEC (ATS.cmd4 -> EF(R4.flag))
+--LTLSPEC G((t1.front != beg & t2.front !=  beg) -> (t1.front != t2.front)) 
+--LTLSPEC G((t1.front != beg & t2.front !=  beg) -> t1.front != t2.tail)
+--LTLSPEC G((t1.front != beg & t2.front !=  beg) -> t2.front != t1.tail)
+----
+INVARSPEC (L22.Occ -> L22.st=reserved) 
 --------------------------------------------------------------------------------------------------------------------
 ---- 控制行为 source_red--999
 --LTLSPEC G((L22.Occ)&(R1.st=locked)->X(R1.cmd=source_red))
@@ -118,8 +91,8 @@ Route_marked := (R1.st=marked | R2.st=marked | R3.st=marked | R4.st=marked );
 ----------------------------------------------------------------------------------------------------------------------------------------
 ----控制行为move_point --1769
 --LTLSPEC G((P22.route_lock=locked|P13.side_lock=locked) ->X(!(R1.cmd=move_point)))
-LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R2.cmd=move_point)))
-LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R3.cmd=move_point)))
+--LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R2.cmd=move_point)))
+--LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R3.cmd=move_point)))
 --LTLSPEC G((P22.side_lock=locked|P13.route_lock=locked) ->X(!(R4.cmd=move_point)))
 -----------------------------------------------------------------------------------------------------------------------------------------
 ------控制行为 解锁道岔侧防锁 
@@ -127,12 +100,12 @@ LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R3.cmd=move_point)
 --LTLSPEC G ((L13.st=reserved)&(P22.side_lock=locked)&(R4.st=locked|R4.st=occupied) -> !(R4.Unlock_P22))
 ---------------------------------------------------------------------------------------------------------
 ------控制行为 禁止解锁进路锁 
-----                                列车未驶入且进路处于锁闭状态时，系统不得解锁进路锁
+----列车未驶入且进路处于锁闭状态时，系统不得解锁进路锁
 --LTLSPEC G (((R1.Occ_cond=null)&!(L22.Occ)&(R1.st=locked))->!(R1.cmd=release_L22))
 --LTLSPEC G (((R2.Occ_cond=null)&!(L22.Occ)&(R2.st=locked))->!(R2.cmd=release_L22))
 --LTLSPEC G (((R3.Occ_cond=null)&!(L14.Occ)&(R3.st=locked))->!(R3.cmd=release_L22))
 --LTLSPEC G (((R4.Occ_cond=null)&!(L12.Occ)&(R4.st=locked))->!(R4.cmd=release_L22))
-------                              当进路处于占用状态，但未占用道岔所在区段时，系统不得解锁进路锁
+------当进路处于占用状态，但未占用道岔所在区段时，系统不得解锁进路锁
 --LTLSPEC G (((R2.Occ_cond=Occ_L22)&!(L13.Occ)&(R2.st=occupied))->!(R2.cmd=release_L13))
 --LTLSPEC G (((R3.Occ_cond=Occ_L14)&!(L13.Occ)&(R3.st=occupied))->!(R3.cmd=release_L13))
 --LTLSPEC G (((R3.Occ_cond=Occ_L14)&!(L22.Occ)&(R3.st=occupied))->!(R3.cmd=release_L22))
@@ -204,41 +177,36 @@ LTLSPEC G((P22.route_lock=locked|P13.route_lock=locked) ->X(!(R3.cmd=move_point)
 --LTLSPEC G((P22.posi=N|P13.posi=N)&(R3.cmd!=move_point)&(R3.st=allocated)->X(R3.cmd=move_point))
 --LTLSPEC G((P22.posi=R|P13.posi=R)&(R4.cmd!=move_point)&(R4.st=allocated)->X(R4.cmd=move_point))
 ----（2）在进路建立阶段，若道岔位置正确但未锁闭，应锁闭道岔；
---LTLSPEC G(((P22.posi=N)&(P13.posi=N))&(next(R1.st)=formed)&(P22.route_lock=unlocked|P13.side_lock=unlocked)->(X(R1.cmd=lock_point)))
---LTLSPEC G(((P22.posi=R)&(P13.posi=R))&(next(R2.st)=formed)&(P22.route_lock=unlocked|P13.route_lock=unlocked)->(X(R2.cmd=lock_point)))
---LTLSPEC G(((P22.posi=R)&(P13.posi=R))&(next(R3.st)=formed)&(P22.route_lock=unlocked|P13.route_lock=unlocked)->(X(R3.cmd=lock_point)))
---LTLSPEC G(((P22.posi=N)&(P13.posi=N))&(next(R4.st)=formed)&(P22.side_lock=unlocked|P13.route_lock=unlocked)->(X(R4.cmd=lock_point)))
+--LTLSPEC G(((R1.st=formed)&(P22.route_lock=unlocked|P13.side_lock=unlocked))->(X(R1.cmd=lock_point)))
+--LTLSPEC G(((R2.st=formed)&(P22.route_lock=unlocked|P13.route_lock=unlocked))->(X(R2.cmd=lock_point)))
+--LTLSPEC G(((R3.st=formed)&(P22.route_lock=unlocked|P13.route_lock=unlocked))->(X(R3.cmd=lock_point)))
+--LTLSPEC G(((R4.st=formed)&(P22.side_lock=unlocked|P13.route_lock=unlocked))->(X(R4.cmd=lock_point)))
+--FAIRNESS R1.st=formed;
 ----（3）当列车驶离某一区段时，应释放该区段并解锁相关道岔的进路锁
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L22)&(next(R1.Occ_cond)=Occ_L23)->X(R1.cmd=release_L22))
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L22-L23)&(next(R1.Occ_cond)=Occ_L23)->X(R1.cmd=release_L22))
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L22-L23)&(next(R1.Occ_cond)=Occ_L23-L24)->X(R1.cmd=release_L22))
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L22-L23-L24)&(next(R1.Occ_cond)=Occ_L23-L24)->X(R1.cmd=release_L22))
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L23)&(next(R1.Occ_cond)=Occ_L24)->X(R1.cmd=release_L23))
---LTLSPEC G((R1.st=occupied)&(R1.Occ_cond=Occ_L23-L24)&(next(R1.Occ_cond)=Occ_L24)->X(R1.cmd=release_L23))
+--LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L22)&(!L22.Occ))->X(R1.cmd=release_L22))
+--LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L22-L23)&(!L22.Occ))->X(R1.cmd=release_L22))
+--LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L22-L23-L24)&(!L22.Occ))->X(R1.cmd=release_L22))
+--LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L23)&(!L23.Occ))->X(R1.cmd=release_L23))
+--LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L23-L24)&(!L23.Occ))->X(R1.cmd=release_L23))
 --LTLSPEC G(((R1.st=occupied)&(R1.Occ_cond=Occ_L24)&(!L24.Occ))->X(R1.cmd=release_L24))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L22)&(next(R2.Occ_cond)=Occ_L13)->X(R2.cmd=release_L22))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L22-L13)&(next(R2.Occ_cond)=Occ_L13)->X(R2.cmd=release_L22))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L22-L13)&(next(R2.Occ_cond)=Occ_L13-L14)->X(R2.cmd=release_L22))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L22-L13-L14)&(next(R2.Occ_cond)=Occ_L13-L14)->X(R2.cmd=release_L22))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L13)&(next(R2.Occ_cond)=Occ_L14)->X(R2.cmd=release_L13))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L13-L14)&(next(R2.Occ_cond)=Occ_L14)->X(R2.cmd=release_L13))
---LTLSPEC G((R2.st=occupied)&(R2.Occ_cond=Occ_L14)&(!L14.Occ)->X(R2.cmd=release_L14))
---
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L14)&(next(R3.Occ_cond)=Occ_L13)->X(R3.cmd=release_L14))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L13-L14)&(next(R3.Occ_cond)=Occ_L13)->X(R3.cmd=release_L14))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L13-L14)&(next(R3.Occ_cond)=Occ_L22-L13)->X(R3.cmd=release_L14))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L22-L13-L14)&(next(R3.Occ_cond)=Occ_L22-L13)->X(R3.cmd=release_L14))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L13)&(next(R3.Occ_cond)=Occ_L22)->X(R3.cmd=release_L13))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L22-L13)&(next(R3.Occ_cond)=Occ_L22)->X(R3.cmd=release_L13))
---LTLSPEC G((R3.st=occupied)&(R3.Occ_cond=Occ_L22)&(!L22.Occ)->X(R3.cmd=release_L22))
-
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L12)&(next(R4.Occ_cond)=Occ_L13)->X(R4.cmd=release_L12))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L12-L13)&(next(R4.Occ_cond)=Occ_L13)->X(R4.cmd=release_L12))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L12-L13)&(next(R4.Occ_cond)=Occ_L13-L14)->X(R4.cmd=release_L12))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L12-L13-L14)&(next(R4.Occ_cond)=Occ_L13-L14)->X(R4.cmd=release_L12))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L13)&(next(R4.Occ_cond)=Occ_L14)->X(R4.cmd=release_L13))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L13-L14)&(next(R4.Occ_cond)=Occ_L14)->X(R4.cmd=release_L13))
---LTLSPEC G((R4.st=occupied)&(R4.Occ_cond=Occ_L14)&(!L14.Occ)->X(R4.cmd=release_L14))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L22)&(!L22.Occ))->X(R2.cmd=release_L22))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L22-L13)&(!L22.Occ))->X(R2.cmd=release_L22))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L22-L13-L14)&(!L22.Occ))->X(R2.cmd=release_L22))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L13)&(!L13.Occ))->X(R2.cmd=release_L13))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L13-L14)&(!L13.Occ))->X(R2.cmd=release_L13))
+--LTLSPEC G(((R2.st=occupied)&(R2.Occ_cond=Occ_L14)&(!L14.Occ))->X(R2.cmd=release_L14))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L14)&(!L14.Occ))->X(R3.cmd=release_L14))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L13-L14)&(!L14.Occ))->X(R3.cmd=release_L14))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L22-L13-L14)&(!L14.Occ))->X(R3.cmd=release_L14))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L13)&(!L13.Occ))->X(R3.cmd=release_L13))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L22-L13)&(!L13.Occ))->X(R3.cmd=release_L13))
+--LTLSPEC G(((R3.st=occupied)&(R3.Occ_cond=Occ_L22)&(!L22.Occ))->X(R3.cmd=release_L22))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L12)&(!L12.Occ))->X(R4.cmd=release_L12))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L12-L13)&(!L12.Occ))->X(R4.cmd=release_L12))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L12-L13-L14)&(!L12.Occ))->X(R4.cmd=release_L12))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L13)&(!L13.Occ))->X(R4.cmd=release_L13))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L13-L14)&(!L13.Occ))->X(R4.cmd=release_L13))
+--LTLSPEC G(((R4.st=occupied)&(R4.Occ_cond=Occ_L14)&(!L14.Occ))->X(R4.cmd=release_L14))
 ----（4）若某道岔所在区段未被预留，且其防护区段也处于未预留状态，应解锁该道岔的侧防锁；
 --LTLSPEC G ((P13.posi=N & P13.side_lock=locked & L22.st!=reserved)->(R1.Unlock_P13))
 --LTLSPEC G ((P22.posi=N & P22.side_lock=locked & L13.st!=reserved)->(R4.Unlock_P22))
@@ -325,7 +293,7 @@ L_cmd:=       --准备进入allocated状态
 Unlock_P13 :=
 	(
 	mainP.P13.posi=N & mainP.P13.side_lock=locked & 
-	mainP.L22.st !=reserved & st=occupied
+	mainP.L22.st !=reserved
 	);
 R_position := --道岔位置正确、区段已经预留,准备进入formed状态
 	(
@@ -492,7 +460,7 @@ R_position :=
 		mainP.L22.st = reserved & mainP.L13.st = reserved & mainP.L14.st = reserved &
 		mainP.P22.posi = R & mainP.P13.posi = R & !mainP.L21.Occ
 	);
---FAIRNESS flag =TRUE;
+-- flag =TRUE;
 ----------------------------------------------------------------------------------------------------------------
 MODULE R_SG11_SG14 (mainP,request,R2_st,R3_st,L12_Occ,L13_Occ,L14_Occ)  --R4 --可以考虑在进路里面加上方向
 VAR
@@ -575,7 +543,7 @@ R_position :=
 Unlock_P22 :=
 	(
 	mainP.P22.posi=N & mainP.P22.side_lock=locked & 
-	mainP.L13.st !=reserved & st=occupied
+	mainP.L13.st !=reserved
 	);
 --FAIRNESS flag =TRUE;
 -----------------------------------------------------------------------------------------------------------------
